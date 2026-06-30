@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Results — {{ test.title }} — MCQ Exam Platform{% endblock %}
+
+{% block content %}
+
+<div class="mb-6 flex items-center justify-between">
+    <div>
+        <a href="{{ url_for('admin.test_list') }}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; Back to Tests</a>
+        <h1 class="text-2xl font-bold text-gray-900 mt-2">{{ test.title }} — Results</h1>
+        <p class="text-sm text-gray-500 mt-1">
+            {% if attempts %}{{ attempts|length }} submitted attempt(s){% endif %}
+        </p>
+    </div>
+    {% if attempts %}
+    <a href="{{ url_for('admin.export_results', test_id=test.id) }}"
+       class="inline-flex items-center gap-2 bg-gray-800 text-white text-sm font-medium
+              px-4 py-2.5 rounded-lg hover:bg-gray-900 transition-colors no-print">
+        ⬇ Export CSV
+    </a>
+    {% endif %}
+</div>
+
+{% if single_attempt %}
+<!-- ── SINGLE ATTEMPT LOG VIEW ──────────────────────────────────────────────── -->
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
+    <h2 class="text-sm font-semibold text-gray-800 mb-4">
+        Suspicious Activity Log — {{ single_attempt.candidate.name }}
+    </h2>
+    {% if logs %}
+    <div class="space-y-2">
+        {% for log in logs %}
+        <div class="flex items-center justify-between px-4 py-2.5 bg-gray-50 rounded-lg border border-gray-100">
+            <span class="text-sm text-gray-700">{{ log.event_type.replace('_', ' ').title() }}</span>
+            <span class="text-xs text-gray-400">{{ log.timestamp.strftime('%H:%M:%S') }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-gray-400">No suspicious activity recorded for this attempt.</p>
+    {% endif %}
+</div>
+{% endif %}
+
+{% if attempts %}
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-100">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidate</th>
+                    <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
+                    <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Result</th>
+                    <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time Taken</th>
+                    <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
+                    <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Violations</th>
+                    <th class="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for attempt in attempts %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-5 py-4">
+                        <p class="text-sm font-medium text-gray-800">{{ attempt.candidate.name }}</p>
+                        <p class="text-xs text-gray-400">{{ attempt.candidate.email }}</p>
+                    </td>
+                    <td class="px-5 py-4 text-sm text-gray-700 font-medium">
+                        {{ attempt.score }} / {{ test.total_marks() }}
+                    </td>
+                    <td class="px-5 py-4">
+                        {% if attempt.passed() %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                PASS
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                FAIL
+                            </span>
+                        {% endif %}
+                        {% if attempt.auto_submitted %}
+                            <span class="block text-xs text-yellow-600 mt-1">⚠ Auto-submitted</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-5 py-4 text-sm text-gray-600">{{ attempt.duration_taken() }} min</td>
+                    <td class="px-5 py-4 text-sm text-gray-400">
+                        {{ attempt.submitted_at.strftime('%b %d, %H:%M') if attempt.submitted_at else '—' }}
+                    </td>
+                    <td class="px-5 py-4 text-sm">
+                        {% set v_count = attempt.suspicious_logs.count() %}
+                        {% if v_count > 0 %}
+                            <span class="text-red-600 font-medium">{{ v_count }}</span>
+                        {% else %}
+                            <span class="text-gray-400">0</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-5 py-4 text-right">
+                        <a href="{{ url_for('admin.attempt_logs', attempt_id=attempt.id) }}"
+                           class="text-xs font-medium text-indigo-600 hover:text-indigo-800">
+                            View Logs
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% elif not single_attempt %}
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-16 text-center">
+    <p class="text-5xl mb-4">📊</p>
+    <p class="text-sm font-medium text-gray-700">No submitted attempts yet</p>
+    <p class="text-xs text-gray-400 mt-1">Results will appear here once candidates complete this test.</p>
+</div>
+{% endif %}
+
+{% endblock %}

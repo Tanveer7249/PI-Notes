@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Live Monitor — Proctor Dashboard{% endblock %}
+
+{% block content %}
+
+<div id="proctor-dashboard">
+
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Live Monitor</h1>
+            <p class="text-sm text-gray-500 mt-1">Real-time candidate activity across all active tests.</p>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-3 text-center">
+            <p class="text-xs text-gray-500 uppercase tracking-wide">Active Candidates</p>
+            <p id="active-candidate-count" class="text-2xl font-bold text-indigo-600">
+                {{ active_attempts|length }}
+            </p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- ── LIVE CANDIDATES TABLE ────────────────────────────────────────── -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
+                <div class="px-5 py-4 border-b border-gray-200">
+                    <h2 class="text-sm font-semibold text-gray-800">Live Candidates</h2>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-100">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidate</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Test</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Violations</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="candidates-table-body" class="divide-y divide-gray-100">
+                            {% for attempt in active_attempts %}
+                            <tr id="candidate-row-{{ attempt.id }}" class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="px-4 py-3 text-sm font-medium text-gray-800">
+                                    {{ attempt.candidate.name }}
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-600">
+                                    {{ attempt.test.title }}
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        🟢 Live
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-sm" id="violations-{{ attempt.id }}">
+                                    {{ attempt.suspicious_logs.count() }}
+                                </td>
+                                <td class="px-4 py-3">
+                                    <a href="{{ url_for('proctor.monitor', attempt_id=attempt.id) }}"
+                                       class="text-xs font-medium text-indigo-600 hover:text-indigo-800">
+                                        Monitor →
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    {% if not active_attempts %}
+                    <div class="px-5 py-16 text-center">
+                        <p class="text-4xl mb-3">👁️</p>
+                        <p class="text-sm font-medium text-gray-700">No active candidates right now</p>
+                        <p class="text-xs text-gray-400 mt-1">Live candidates will appear here when they start an exam.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ── ALERT FEED SIDEBAR ───────────────────────────────────────────── -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
+                <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+                    <h2 class="text-sm font-semibold text-gray-800">Recent Alerts</h2>
+                    <span id="alert-count-badge"
+                          class="hidden bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        0
+                    </span>
+                </div>
+
+                <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
+                    <table class="min-w-full divide-y divide-gray-100">
+                        <tbody id="alert-feed-body" class="divide-y divide-gray-100">
+                            {% for log in recent_logs %}
+                            <tr class="border-b border-gray-100">
+                                <td class="px-4 py-2 text-sm font-medium text-gray-800">{{ log.attempt.candidate.name }}</td>
+                                <td class="px-4 py-2 text-sm text-gray-600">{{ log.attempt.test.title }}</td>
+                                <td class="px-4 py-2">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                        {% if log.event_type in ['tab_switch', 'fullscreen_exit', 'screen_share_stopped', 'auto_submitted'] %}
+                                            bg-red-100 text-red-800
+                                        {% elif log.event_type in ['copy_attempt', 'paste_attempt', 'camera_off'] %}
+                                            bg-yellow-100 text-yellow-800
+                                        {% else %}
+                                            bg-gray-100 text-gray-700
+                                        {% endif %}">
+                                        {{ log.event_type.replace('_', ' ').title() }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-2 text-xs text-gray-500">{{ log.timestamp.strftime('%H:%M:%S') }}</td>
+                                <td class="px-4 py-2">
+                                    <a href="{{ url_for('proctor.monitor', attempt_id=log.attempt_id) }}"
+                                       class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
+                                        Monitor →
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    {% if not recent_logs %}
+                    <div class="px-5 py-10 text-center">
+                        <p class="text-3xl mb-2">✅</p>
+                        <p class="text-xs text-gray-400">No violations detected yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/proctor.js') }}"></script>
+{% endblock %}

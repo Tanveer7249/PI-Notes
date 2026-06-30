@@ -1,0 +1,38 @@
+# ─────────────────────────────────────────────
+# MCQ Examination & Proctoring Platform
+# Python Dependencies — Production Ready
+# ─────────────────────────────────────────────
+
+# Core Framework
+flask==3.0.3
+
+# Real-time WebSocket support (exam proctoring live events)
+flask-socketio==5.3.6
+
+# Async worker required by Flask-SocketIO in production
+gevent==24.11.1
+gevent-websocket==0.10.1
+
+# ORM — database models and queries
+flask-sqlalchemy==3.1.1
+
+# Database schema migrations
+flask-migrate==4.0.7
+
+# Session-based authentication (login/logout/current_user)
+flask-login==0.6.3
+
+# Password hashing (bcrypt)
+flask-bcrypt==1.0.1
+
+# CSRF protection on all forms
+flask-wtf==1.2.1
+
+# PostgreSQL database adapter
+psycopg2-binary==2.9.10
+
+# Load environment variables from .env file
+python-dotenv==1.0.1
+
+# Production WSGI server (Render deployment)
+gunicorn==22.0.0

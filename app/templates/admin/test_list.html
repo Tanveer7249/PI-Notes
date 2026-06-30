@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}All Tests — MCQ Exam Platform{% endblock %}
+
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-bold text-gray-900">All Tests</h1>
+        <p class="text-sm text-gray-500 mt-1">Manage, publish, and review your created tests.</p>
+    </div>
+    <a href="{{ url_for('admin.create_test') }}"
+       class="inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-medium
+              px-4 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors">
+        <span>+</span> Create New Test
+    </a>
+</div>
+
+{% if tests %}
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-100">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                    <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Questions</th>
+                    <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                    <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Negative Marking</th>
+                    <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for test in tests %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-5 py-4">
+                        <p class="text-sm font-medium text-gray-800">{{ test.title }}</p>
+                        {% if test.description %}
+                        <p class="text-xs text-gray-400 mt-0.5 max-w-xs truncate">{{ test.description }}</p>
+                        {% endif %}
+                    </td>
+                    <td class="px-5 py-4 text-sm text-gray-600">{{ test.question_count() }}</td>
+                    <td class="px-5 py-4 text-sm text-gray-600">{{ test.duration_minutes }} min</td>
+                    <td class="px-5 py-4 text-sm text-gray-600">
+                        {% if test.negative_marking > 0 %}
+                            {{ (test.negative_marking * 100) | round | int }}%
+                        {% else %}
+                            Disabled
+                        {% endif %}
+                    </td>
+                    <td class="px-5 py-4">
+                        {% if test.is_published %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Published
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                                Draft
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-5 py-4 text-right">
+                        <div class="flex items-center justify-end gap-2">
+
+                            <a href="{{ url_for('admin.question_list', test_id=test.id) }}"
+                               class="text-xs font-medium text-indigo-600 hover:text-indigo-800"
+                               title="Manage Questions">
+                                Questions
+                            </a>
+
+                            <a href="{{ url_for('admin.edit_test', test_id=test.id) }}"
+                               class="text-xs font-medium text-gray-500 hover:text-gray-700"
+                               title="Edit Test">
+                                Edit
+                            </a>
+
+                            <a href="{{ url_for('admin.results', test_id=test.id) }}"
+                               class="text-xs font-medium text-purple-600 hover:text-purple-800"
+                               title="View Results">
+                                Results
+                            </a>
+
+                            <!-- Publish/Unpublish toggle -->
+                            <form method="POST"
+                                  action="{{ url_for('admin.toggle_publish', test_id=test.id) }}"
+                                  class="publish-form inline"
+                                  data-published="{{ 'true' if test.is_published else 'false' }}"
+                                  data-test-name="{{ test.title }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                <button type="submit"
+                                        class="text-xs font-medium {% if test.is_published %}text-yellow-600 hover:text-yellow-800{% else %}text-green-600 hover:text-green-800{% endif %}">
+                                    {{ 'Unpublish' if test.is_published else 'Publish' }}
+                                </button>
+                            </form>
+
+                            <!-- Delete -->
+                            <form method="POST"
+                                  action="{{ url_for('admin.delete_test', test_id=test.id) }}"
+                                  class="delete-form inline"
+                                  data-item-name="{{ test.title }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                <button type="submit" class="text-xs font-medium text-red-500 hover:text-red-700">
+                                    Delete
+                                </button>
+                            </form>
+
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-16 text-center">
+    <p class="text-5xl mb-4">📝</p>
+    <p class="text-sm font-medium text-gray-700">No tests created yet</p>
+    <p class="text-xs text-gray-400 mt-1 mb-4">Get started by creating your first test.</p>
+    <a href="{{ url_for('admin.create_test') }}"
+       class="inline-flex items-center gap-2 bg-indigo-600 text-white text-sm font-medium
+              px-4 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors">
+        <span>+</span> Create New Test
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}

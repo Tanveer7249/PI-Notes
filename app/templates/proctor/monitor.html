@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Monitoring {{ attempt.candidate.name }} — Proctor{% endblock %}
+
+{% block content %}
+
+<div id="proctor-monitor" data-attempt-id="{{ attempt.id }}">
+
+    <div class="mb-6">
+        <a href="{{ url_for('proctor.dashboard') }}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; Back to Live Monitor</a>
+        <div class="flex items-center justify-between mt-2">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">{{ attempt.candidate.name }}</h1>
+                <p class="text-sm text-gray-500 mt-1">{{ attempt.test.title }} · {{ attempt.candidate.email }}</p>
+            </div>
+
+            {% if not attempt.is_submitted %}
+            <button id="force-submit-btn"
+                    data-attempt-id="{{ attempt.id }}"
+                    class="bg-red-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg
+                           hover:bg-red-700 transition-colors">
+                Force Submit Exam
+            </button>
+            {% else %}
+            <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-100 text-gray-600">
+                Exam Submitted
+            </span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- ── LEFT: LIVE FEEDS ─────────────────────────────────────────────── -->
+        <div class="lg:col-span-2 space-y-6">
+
+            <!-- Webcam Feed -->
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-sm font-semibold text-gray-800">📷 Webcam Feed</h2>
+                    <span class="text-xs text-gray-400">Last seen: <span id="last-seen-webcam">—</span></span>
+                </div>
+                <div class="relative bg-gray-100 rounded-lg overflow-hidden" style="aspect-ratio: 4/3;">
+                    <img id="live-webcam" class="hidden" alt="Webcam feed" />
+                    <div id="webcam-placeholder" class="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
+                        Waiting for webcam feed…
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen Share Feed -->
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-sm font-semibold text-gray-800">🖥️ Screen Share</h2>
+                    <span class="text-xs text-gray-400">Last seen: <span id="last-seen-screen">—</span></span>
+                </div>
+                <div class="relative bg-gray-100 rounded-lg overflow-hidden" style="aspect-ratio: 16/10;">
+                    <img id="live-screen" class="hidden" alt="Screen share feed" />
+                    <div id="screen-placeholder" class="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
+                        Waiting for screen share feed…
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ── RIGHT: VIOLATION SUMMARY + LOG FEED ──────────────────────────── -->
+        <div class="lg:col-span-1 space-y-6">
+
+            <!-- Violation Summary -->
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                <h2 class="text-sm font-semibold text-gray-800 mb-4">Violation Summary</h2>
+                <div class="space-y-2">
+                    {% set event_labels = {
+                        'tab_switch': 'Tab Switches',
+                        'fullscreen_exit': 'Fullscreen Exits',
+                        'copy_attempt': 'Copy Attempts',
+                        'paste_attempt': 'Paste Attempts',
+                        'right_click': 'Right Clicks',
+                        'camera_off': 'Camera Disabled',
+                        'screen_share_stopped': 'Screen Share Stopped',
+                        'visibility_hidden': 'Window Unfocused'
+                    } %}
+                    {% for event_key, label in event_labels.items() %}
+                    <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50">
+                        <span class="text-xs text-gray-600">{{ label }}</span>
+                        <span id="summary-{{ event_key }}" class="text-sm font-bold text-gray-800">
+                            {{ violation_summary.get(event_key, 0) }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Live Violation Log Feed -->
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                <h2 class="text-sm font-semibold text-gray-800 mb-4">Activity Log</h2>
+                <div id="monitor-log-feed" class="max-h-[400px] overflow-y-auto">
+                    {% for log in logs %}
+                    <div class="flex items-start gap-3 p-3 rounded-lg border mb-2
+                        {% if log.event_type in ['tab_switch', 'fullscreen_exit', 'screen_share_stopped', 'auto_submitted'] %}
+                            bg-red-50 border-red-200
+                        {% elif log.event_type in ['copy_attempt', 'paste_attempt', 'camera_off'] %}
+                            bg-yellow-50 border-yellow-200
+                        {% else %}
+                            bg-gray-50 border-gray-200
+                        {% endif %}">
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-800">{{ log.event_type.replace('_', ' ').title() }}</p>
+                            <p class="text-xs text-gray-500 mt-0.5">{{ log.timestamp.strftime('%H:%M:%S') }}</p>
+                        </div>
+                        {% if log.snapshot_url %}
+                        <img src="{{ log.snapshot_url }}" alt="Snapshot"
+                             class="w-16 h-12 object-cover rounded border border-gray-300 cursor-pointer"
+                             onclick="openSnapshot('{{ log.snapshot_url }}')" />
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <p class="text-xs text-gray-400 text-center py-8">No activity logged yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/proctor.js') }}"></script>
+{% endblock %}

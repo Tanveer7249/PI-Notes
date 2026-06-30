@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}Questions — {{ test.title }} — MCQ Exam Platform{% endblock %}
+
+{% block content %}
+
+<div class="mb-6">
+    <a href="{{ url_for('admin.test_list') }}" class="text-sm text-indigo-600 hover:text-indigo-800">&larr; Back to Tests</a>
+    <h1 class="text-2xl font-bold text-gray-900 mt-2">{{ test.title }}</h1>
+    <p class="text-sm text-gray-500 mt-1">
+        {{ questions|length }} question(s) · {{ test.total_marks() }} total marks · {{ test.duration_minutes }} min
+    </p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- ── LEFT: ADD QUESTION FORM + CSV IMPORT ─────────────────────────────── -->
+    <div class="lg:col-span-1 space-y-6">
+
+        <!-- Manual Add Question -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+            <h2 class="text-sm font-semibold text-gray-800 mb-4">Add Question</h2>
+
+            <form method="POST" action="{{ url_for('admin.add_question', test_id=test.id) }}" class="space-y-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1.5">Question Text</label>
+                    <textarea id="question-text"
+                              name="question_text"
+                              rows="3"
+                              required
+                              maxlength="1000"
+                              placeholder="Enter the question..."
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none
+                                     focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                    <p id="char-counter" class="text-xs text-gray-400 mt-1 text-right">0 / 1000</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1.5">Marks</label>
+                    <input type="number"
+                           name="marks"
+                           value="1"
+                           min="1"
+                           required
+                           class="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm
+                                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-2">
+                        Options <span class="text-gray-400">(select the correct one)</span>
+                    </label>
+
+                    <div id="options-container">
+
+                        <div class="option-row flex items-center gap-3 mb-3">
+                            <input type="radio" name="correct_option" value="0" required
+                                   class="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500" />
+                            <span class="option-label w-20 text-sm font-medium text-gray-600">Option A</span>
+                            <input type="text" name="option_text" placeholder="Enter option A" required
+                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm
+                                          focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                            <button type="button" class="remove-option-btn" style="display:none;">✕</button>
+                        </div>
+
+                        <div class="option-row flex items-center gap-3 mb-3">
+                            <input type="radio" name="correct_option" value="1"
+                                   class="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500" />
+                            <span class="option-label w-20 text-sm font-medium text-gray-600">Option B</span>
+                            <input type="text" name="option_text" placeholder="Enter option B" required
+                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm
+                                          focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                            <button type="button" class="remove-option-btn" style="display:none;">✕</button>
+                        </div>
+
+                        <div class="option-row flex items-center gap-3 mb-3">
+                            <input type="radio" name="correct_option" value="2"
+                                   class="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500" />
+                            <span class="option-label w-20 text-sm font-medium text-gray-600">Option C</span>
+                            <input type="text" name="option_text" placeholder="Enter option C" required
+                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm
+                                          focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                            <button type="button" class="remove-option-btn inline-flex items-center justify-center
+                                       w-8 h-8 rounded-full bg-red-100 text-red-600 hover:bg-red-200
+                                       transition-colors text-sm font-bold">✕</button>
+                        </div>
+
+                        <div class="option-row flex items-center gap-3 mb-3">
+                            <input type="radio" name="correct_option" value="3"
+                                   class="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-500" />
+                            <span class="option-label w-20 text-sm font-medium text-gray-600">Option D</span>
+                            <input type="text" name="option_text" placeholder="Enter option D" required
+                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm
+                                          focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                            <button type="button" class="remove-option-btn inline-flex items-center justify-center
+                                       w-8 h-8 rounded-full bg-red-100 text-red-600 hover:bg-red-200
+                                       transition-colors text-sm font-bold">✕</button>
+                        </div>
+
+                    </div>
+
+                    <button type="button"
+                            id="add-option-btn"
+                            class="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600
+                                   hover:text-indigo-800 mt-1">
+                        <span>+</span> Add Option
+                    </button>
+                </div>
+
+                <button type="submit"
+                        class="w-full bg-indigo-600 text-white font-medium py-2.5 rounded-lg
+                               hover:bg-indigo-700 transition-colors text-sm">
+                    Add Question
+                </button>
+            </form>
+        </div>
+
+        <!-- CSV Import -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+            <h2 class="text-sm font-semibold text-gray-800 mb-2">Bulk Import via CSV</h2>
+            <p class="text-xs text-gray-500 mb-4">
+                Required columns: <code class="bg-gray-100 px-1 rounded">question_text, option_a, option_b,
+                option_c, option_d, correct_option, marks</code>.
+                <code class="bg-gray-100 px-1 rounded">correct_option</code> must be a, b, c, or d.
+            </p>
+
+            <form method="POST"
+                  action="{{ url_for('admin.import_csv', test_id=test.id) }}"
+                  enctype="multipart/form-data"
+                  class="space-y-3">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <input type="file"
+                       id="csv-file-input"
+                       name="csv_file"
+                       accept=".csv"
+                       required
+                       class="w-full text-sm text-gray-600
+                              file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0
+                              file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700
+                              hover:file:bg-indigo-100" />
+
+                <div id="csv-preview"></div>
+
+                <button type="submit"
+                        class="w-full bg-gray-800 text-white font-medium py-2.5 rounded-lg
+                               hover:bg-gray-900 transition-colors text-sm">
+                    Import Questions
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+    <!-- ── RIGHT: EXISTING QUESTIONS LIST ───────────────────────────────────── -->
+    <div class="lg:col-span-2">
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
+            <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-gray-800">Questions ({{ questions|length }})</h2>
+                {% if test.question_count() > 0 and not test.is_published %}
+                <form method="POST" action="{{ url_for('admin.toggle_publish', test_id=test.id) }}"
+                      data-published="false" data-test-name="{{ test.title }}" class="publish-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <button type="submit" class="text-xs font-medium text-green-600 hover:text-green-800">
+                        Publish Test →
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+
+            {% if questions %}
+            <div class="divide-y divide-gray-100 max-h-[700px] overflow-y-auto">
+                {% for question in questions %}
+                <div class="px-5 py-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-800">
+                                {{ loop.index }}. {{ question.text }}
+                            </p>
+                            <div class="mt-2 grid grid-cols-2 gap-2">
+                                {% for option in question.options %}
+                                <p class="text-xs px-2 py-1 rounded {% if option.is_correct %}bg-green-50 text-green-700 font-medium{% else %}text-gray-500{% endif %}">
+                                    {% if option.is_correct %}✓{% else %}○{% endif %} {{ option.text }}
+                                </p>
+                                {% endfor %}
+                            </div>
+                            <p class="text-xs text-gray-400 mt-2">{{ question.marks }} mark(s)</p>
+                        </div>
+                        <form method="POST"
+                              action="{{ url_for('admin.delete_question', test_id=test.id, question_id=question.id) }}"
+                              class="delete-form"
+                              data-item-name="this question">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <button type="submit" class="text-xs font-medium text-red-500 hover:text-red-700 whitespace-nowrap">
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="px-5 py-16 text-center">
+                <p class="text-4xl mb-3">📋</p>
+                <p class="text-sm font-medium text-gray-700">No questions yet</p>
+                <p class="text-xs text-gray-400 mt-1">Add a question manually or import via CSV.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}

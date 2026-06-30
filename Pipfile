@@ -1,0 +1,24 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+eventlet = "==0.36.1"
+flask = "==3.0.3"
+flask-socketio = "==5.3.6"
+gevent = "==24.11.1"
+gevent-websocket = "==0.10.1"
+flask-sqlalchemy = "==3.1.1"
+flask-migrate = "==4.0.7"
+flask-login = "==0.6.3"
+flask-bcrypt = "==1.0.1"
+flask-wtf = "==1.2.1"
+psycopg2-binary = "==2.9.10"
+python-dotenv = "==1.0.1"
+gunicorn = "==22.0.0"
+
+[dev-packages]
+
+[requires]
+python_version = "3.13"

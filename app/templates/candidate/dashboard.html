@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Result' if show_result else 'My Tests' }} — MCQ Exam Platform{% endblock %}
+
+{% block content %}
+
+{% if show_result %}
+<!-- ── RESULT VIEW ──────────────────────────────────────────────────────────── -->
+<div class="max-w-3xl mx-auto">
+
+    <div class="rounded-2xl shadow-sm border border-gray-200 p-8 text-center mb-6
+                {% if attempt.passed() %}bg-gradient-to-br from-green-50 to-white{% else %}bg-gradient-to-br from-red-50 to-white{% endif %}">
+        {% if attempt.passed() %}
+            <p class="text-5xl mb-3">🎉</p>
+            <h1 class="text-2xl font-bold text-green-700">You Passed!</h1>
+        {% else %}
+            <p class="text-5xl mb-3">📋</p>
+            <h1 class="text-2xl font-bold text-red-600">You Did Not Pass</h1>
+        {% endif %}
+
+        <p class="text-sm text-gray-500 mt-2">{{ test.title }}</p>
+
+        <div class="grid grid-cols-3 gap-4 mt-6">
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                <p class="text-xs text-gray-500 uppercase tracking-wide">Your Score</p>
+                <p class="text-xl font-bold text-gray-900 mt-1">{{ attempt.score }}</p>
+            </div>
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                <p class="text-xs text-gray-500 uppercase tracking-wide">Total Marks</p>
+                <p class="text-xl font-bold text-gray-900 mt-1">{{ test.total_marks() }}</p>
+            </div>
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                <p class="text-xs text-gray-500 uppercase tracking-wide">Pass Marks</p>
+                <p class="text-xl font-bold text-gray-900 mt-1">{{ test.pass_marks }}</p>
+            </div>
+        </div>
+
+        {% if attempt.auto_submitted %}
+        <p class="text-xs text-yellow-600 mt-4">⚠ This attempt was auto-submitted.</p>
+        {% endif %}
+    </div>
+
+    <!-- Question Review -->
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="px-5 py-4 border-b border-gray-200 bg-gray-50">
+            <h2 class="text-sm font-semibold text-gray-800">Answer Review</h2>
+        </div>
+        <div class="divide-y divide-gray-100">
+            {% for question in questions %}
+            {% set ans = answer_map.get(question.id) %}
+            <div class="px-5 py-4">
+                <p class="text-sm font-medium text-gray-800">{{ loop.index }}. {{ question.text }}</p>
+                <div class="mt-2 space-y-1.5">
+                    {% for option in question.options %}
+                    <div class="text-xs px-3 py-1.5 rounded-lg
+                        {% if option.is_correct %}
+                            bg-green-50 text-green-700 font-medium
+                        {% elif ans and ans.selected_option_id == option.id %}
+                            bg-red-50 text-red-700 font-medium
+                        {% else %}
+                            text-gray-500
+                        {% endif %}">
+                        {% if option.is_correct %}✓{% elif ans and ans.selected_option_id == option.id %}✗{% else %}○{% endif %}
+                        {{ option.text }}
+                    </div>
+                    {% endfor %}
+                    {% if not ans or not ans.selected_option_id %}
+                    <p class="text-xs text-gray-400 italic">Not attempted</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="text-center mt-6">
+        <a href="{{ url_for('candidate.dashboard') }}"
+           class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+            &larr; Back to My Tests
+        </a>
+    </div>
+</div>
+
+{% else %}
+<!-- ── TEST LIST VIEW ───────────────────────────────────────────────────────── -->
+<div class="rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-8 mb-8 shadow-md shadow-indigo-200">
+    <h1 class="text-2xl font-bold text-white">My Tests</h1>
+    <p class="text-sm text-indigo-100 mt-1">Welcome, {{ current_user.name }}. Here are your available tests.</p>
+</div>
+
+{% if tests %}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    {% for test in tests %}
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow p-5 flex flex-col">
+        <div class="flex items-start justify-between gap-2">
+            <h2 class="text-sm font-semibold text-gray-800">{{ test.title }}</h2>
+            {% if test.id in attempted_ids %}
+            <span class="shrink-0 text-[10px] font-semibold uppercase tracking-wide px-2 py-1 rounded-full bg-gray-100 text-gray-500">
+                Done
+            </span>
+            {% else %}
+            <span class="shrink-0 text-[10px] font-semibold uppercase tracking-wide px-2 py-1 rounded-full bg-indigo-50 text-indigo-600">
+                New
+            </span>
+            {% endif %}
+        </div>
+
+        {% if test.description %}
+        <p class="text-xs text-gray-500 mt-1.5 line-clamp-2">{{ test.description }}</p>
+        {% endif %}
+
+        <div class="flex items-center gap-4 mt-3 text-xs text-gray-400">
+            <span class="inline-flex items-center gap-1">⏱ {{ test.duration_minutes }} min</span>
+            <span class="inline-flex items-center gap-1">📝 {{ test.question_count() }} questions</span>
+        </div>
+
+        <div class="mt-4">
+            {% if test.id in attempted_ids %}
+                <span class="inline-flex items-center justify-center w-full px-3 py-2 rounded-lg
+                              bg-gray-100 text-gray-500 text-sm font-medium">
+                    Already Attempted
+                </span>
+            {% else %}
+                <a href="{{ url_for('candidate.lobby', test_id=test.id) }}"
+                   class="inline-flex items-center justify-center w-full bg-gradient-to-r from-indigo-600 to-violet-600
+                          text-white text-sm font-medium px-3 py-2 rounded-lg
+                          hover:from-indigo-700 hover:to-violet-700 transition-all">
+                    Start Test →
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="bg-white rounded-2xl border border-gray-200 shadow-sm px-5 py-16 text-center">
+    <p class="text-5xl mb-4">📭</p>
+    <p class="text-sm font-medium text-gray-700">No tests available yet</p>
+    <p class="text-xs text-gray-400 mt-1">Check back later — your admin will publish tests here.</p>
+</div>
+{% endif %}
+
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Exam Lobby — {{ test.title }}{% endblock %}
+
+{% block body_class %}bg-gradient-to-br from-indigo-50 via-white to-violet-50{% endblock %}
+
+{% block content %}
+
+<div class="max-w-2xl mx-auto">
+
+    <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl
+                    bg-gradient-to-br from-indigo-600 to-violet-600 text-white mb-4 shadow-lg shadow-indigo-200 text-2xl">
+            📝
+        </div>
+        <h1 class="text-2xl font-bold text-gray-900">{{ test.title }}</h1>
+        <p class="text-sm text-gray-500 mt-1">Please complete the setup checks below before starting.</p>
+    </div>
+
+    <!-- ── TEST INFO ───────────────────────────────────────────────────────── -->
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6">
+        <div class="grid grid-cols-3 gap-4 text-center divide-x divide-gray-100">
+            <div>
+                <p class="text-xs text-gray-500 uppercase tracking-wide">Duration</p>
+                <p class="text-lg font-bold text-gray-900 mt-1">{{ test.duration_minutes }} min</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500 uppercase tracking-wide">Questions</p>
+                <p class="text-lg font-bold text-gray-900 mt-1">{{ test.question_count() }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-gray-500 uppercase tracking-wide">Total Marks</p>
+                <p class="text-lg font-bold text-gray-900 mt-1">{{ test.total_marks() }}</p>
+            </div>
+        </div>
+        {% if test.negative_marking > 0 %}
+        <p class="text-xs text-yellow-600 text-center mt-4 bg-yellow-50 rounded-lg py-2">
+            ⚠ Negative marking enabled: {{ (test.negative_marking * 100) | round | int }}% deducted per wrong answer.
+        </p>
+        {% endif %}
+    </div>
+
+    <!-- ── PERMISSION CHECKS ───────────────────────────────────────────────── -->
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6">
+        <h2 class="text-sm font-semibold text-gray-800 mb-4">Pre-Exam Checklist</h2>
+
+        <div class="space-y-3">
+
+            <!-- Webcam Check -->
+            <div class="flex items-center justify-between p-4 rounded-xl border border-gray-200 hover:border-indigo-200 transition-colors">
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-xl">📷</span>
+                    <div>
+                        <p class="text-sm font-medium text-gray-800">Webcam Access</p>
+                        <p class="text-xs text-gray-400">Required for proctoring</p>
+                    </div>
+                </div>
+                <button id="check-webcam-btn"
+                        class="text-xs font-medium px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700
+                               hover:bg-indigo-100 transition-colors">
+                    Test Webcam
+                </button>
+            </div>
+            <video id="webcam-test-preview" class="hidden w-32 h-24 rounded-lg border border-gray-200 object-cover" autoplay muted></video>
+
+            <!-- Fullscreen Check -->
+            <div class="flex items-center justify-between p-4 rounded-xl border border-gray-200 hover:border-indigo-200 transition-colors">
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-xl">🖥️</span>
+                    <div>
+                        <p class="text-sm font-medium text-gray-800">Fullscreen Mode</p>
+                        <p class="text-xs text-gray-400">Will activate automatically when exam starts</p>
+                    </div>
+                </div>
+                <span id="fullscreen-status" class="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-100 text-gray-500">
+                    Pending
+                </span>
+            </div>
+
+            <!-- Screen Share Notice -->
+            <div class="flex items-center justify-between p-4 rounded-xl border border-gray-200 hover:border-indigo-200 transition-colors">
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center text-xl">🔗</span>
+                    <div>
+                        <p class="text-sm font-medium text-gray-800">Screen Sharing</p>
+                        <p class="text-xs text-gray-400">You'll be prompted to share your screen on start</p>
+                    </div>
+                </div>
+                <span class="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-100 text-gray-500">
+                    Required
+                </span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── RULES ────────────────────────────────────────────────────────────── -->
+    <div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-6 mb-6">
+        <h2 class="text-sm font-semibold text-yellow-800 mb-2 flex items-center gap-2">
+            <span>⚠</span> Important Rules
+        </h2>
+        <ul class="text-xs text-yellow-700 space-y-1.5 list-disc list-inside">
+            <li>Do not exit fullscreen mode during the exam.</li>
+            <li>Do not switch tabs or minimize the browser window.</li>
+            <li>Copy, paste, and right-click are disabled during the exam.</li>
+            <li>Your webcam and screen will be monitored throughout.</li>
+            <li>Violations are logged and may result in disqualification.</li>
+            <li>The exam will auto-submit when the timer expires.</li>
+        </ul>
+    </div>
+
+    <!-- ── START BUTTON ─────────────────────────────────────────────────────── -->
+    <form method="POST" action="{{ url_for('candidate.start_exam', test_id=test.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <button type="submit"
+                id="start-exam-btn"
+                class="w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-semibold py-3.5 rounded-xl
+                       hover:from-indigo-700 hover:to-violet-700 active:scale-[0.99] transition-all text-sm
+                       shadow-md shadow-indigo-200">
+            I Understand — Start Exam
+        </button>
+    </form>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // ── Webcam test on the lobby page (separate from the exam stream) ──────────
+    document.getElementById("check-webcam-btn").addEventListener("click", async () => {
+        const btn   = document.getElementById("check-webcam-btn");
+        const video = document.getElementById("webcam-test-preview");
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+            video.srcObject = stream;
+            video.classList.remove("hidden");
+            btn.textContent = "✓ Webcam OK";
+            btn.classList.remove("bg-indigo-50", "text-indigo-700");
+            btn.classList.add("bg-green-50", "text-green-700");
+        } catch (err) {
+            btn.textContent = "✗ Access Denied";
+            btn.classList.remove("bg-indigo-50", "text-indigo-700");
+            btn.classList.add("bg-red-50", "text-red-700");
+        }
+    });
+
+    // ── Enter fullscreen ON CLICK (must be a direct user gesture) then submit ──
+    const examForm  = document.querySelector("form[action*='/start']");
+    const startBtn  = document.getElementById("start-exam-btn");
+    if (examForm && startBtn) {
+        examForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+            const el = document.documentElement;
+            const fsRequest = el.requestFullscreen
+                ? el.requestFullscreen()
+                : el.webkitRequestFullscreen
+                ? el.webkitRequestFullscreen()
+                : el.mozRequestFullScreen
+                ? el.mozRequestFullScreen()

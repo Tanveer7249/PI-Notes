@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Exam — {{ test.title }}{% endblock %}
+
+{% block main_class %}w-full px-0{% endblock %}
+
+{% block body_class %}bg-gray-50{% endblock %}
+
+{% block content %}
+
+<div id="exam-root"
+     data-attempt-id="{{ attempt.id }}"
+     data-test-id="{{ test.id }}"
+     data-remaining-secs="{{ remaining_secs }}"
+     data-save-url="{{ url_for('candidate.save_answer', attempt_id=attempt.id) }}"
+     data-log-url="{{ url_for('candidate.log_event', attempt_id=attempt.id) }}"
+     data-submit-url="{{ url_for('candidate.submit_exam', attempt_id=attempt.id) }}">
+
+    <!-- ── WARNING BANNER ──────────────────────────────────────────────────── -->
+    <div id="warning-banner"
+         class="hidden fixed top-0 left-0 right-0 bg-red-600 text-white text-sm font-medium
+                text-center py-2 z-50 shadow-lg"></div>
+
+    <!-- ── HEADER ───────────────────────────────────────────────────────────── -->
+    <div id="exam-header" class="bg-gradient-to-r from-indigo-600 to-violet-600 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
+            <div>
+                <h1 class="text-base font-bold text-white">{{ test.title }}</h1>
+                <p class="text-xs text-indigo-100">{{ questions|length }} questions · {{ test.total_marks() }} marks</p>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <!-- Webcam preview -->
+                <video id="webcam-preview"
+                       class="w-20 h-14 bg-black/20 rounded-lg border-2 border-white/40 object-cover"
+                       autoplay muted playsinline></video>
+                <!-- Screen preview (hidden, used only to capture frames) -->
+                <video id="screen-preview" class="hidden" autoplay muted playsinline></video>
+
+                <div class="text-right bg-white/10 rounded-lg px-3 py-1.5">
+                    <p class="text-[10px] text-indigo-100 uppercase tracking-wide">Time Left</p>
+                    <p id="timer-display" class="text-lg font-bold text-white tabular-nums">--:--</p>
+                </div>
+
+                <button type="button" id="submit-exam-btn"
+                        class="bg-white text-red-600 text-sm font-semibold px-4 py-2 rounded-lg
+                               hover:bg-red-50 transition-colors shadow-sm">
+                    Submit Exam
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── BODY: PALETTE + QUESTIONS ───────────────────────────────────────── -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6">
+
+        <!-- Question palette -->
+        <aside id="exam-palette" class="bg-white border border-gray-200 rounded-2xl shadow-sm p-4 h-fit">
+            <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Questions</h2>
+            <div class="grid grid-cols-5 lg:grid-cols-4 gap-2 mb-4">
+                {% for question in questions %}
+                <button type="button"
+                        onclick="scrollToQuestion({{ question.id }})"
+                        class="w-9 h-9 rounded-lg text-xs font-medium border border-gray-200
+                               flex items-center justify-center gap-1 hover:border-indigo-400 hover:bg-indigo-50 transition-colors">
+                    <span id="palette-dot-{{ question.id }}"
+                          class="w-2 h-2 rounded-full {{ 'bg-green-500' if saved_answers.get(question.id) else 'bg-gray-300' }}"></span>
+                    {{ loop.index }}
+                </button>
+                {% endfor %}
+            </div>
+            <div class="border-t border-gray-100 pt-3 space-y-1.5 text-[11px] text-gray-400">
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-500"></span> Answered</div>
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gray-300"></span> Unanswered</div>
+            </div>
+        </aside>
+
+        <!-- Questions -->
+        <div id="exam-questions" class="space-y-5">
+            {% for question in questions %}
+            <div id="question-{{ question.id }}" class="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 scroll-mt-24">
+                <div class="flex items-start justify-between gap-4 mb-4">
+                    <p class="text-sm font-medium text-gray-900 leading-relaxed">
+                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-indigo-50 text-indigo-600 text-xs font-bold mr-2">
+                            {{ loop.index }}
+                        </span>
+                        {{ question.text }}
+                    </p>
+                    <div class="flex items-center gap-3 shrink-0">
+                        <span class="text-xs text-gray-400 bg-gray-50 rounded-full px-2.5 py-1">{{ question.marks }} marks</span>
+                        <span id="save-status-{{ question.id }}" class="text-xs text-gray-400"></span>
+                    </div>
+                </div>
+
+                <div class="space-y-2 pl-1">
+                    {% for option in question.options %}
+                    <div>
+                        <input type="radio"
+                               id="option-{{ option.id }}"
+                               name="question_{{ question.id }}"
+                               value="{{ option.id }}"
+                               data-question-id="{{ question.id }}"
+                               class="hidden"
+                               {% if saved_answers.get(question.id) == option.id %}checked{% endif %} />
+                        <label for="option-{{ option.id }}"
+                               class="option-label-wrap flex items-center gap-3 p-3 rounded-xl border border-gray-200 text-sm text-gray-700">
+                            {{ option.text }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/exam.js') }}"></script>
+{% endblock %}
