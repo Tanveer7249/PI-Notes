@@ -45,12 +45,12 @@ class DevelopmentConfig(Config):
 
 
 class ProductionConfig(Config):
-    """
-    Production environment (Render + Supabase).
-    Debug off, secure cookies enforced.
-    """
     DEBUG = False
-    SESSION_COOKIE_SECURE = True   # HTTPS only — enforced on Render
+    SESSION_COOKIE_SECURE = False  # change to False temporarily
+    SESSION_COOKIE_SAMESITE = "Lax"
+    SESSION_COOKIE_HTTPONLY = True
+    WTF_CSRF_TIME_LIMIT = None
+    WTF_CSRF_SSL_STRICT = False
 
 
 # ── Config selector ───────────────────────────────────────────────────────────
