@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, app
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -30,6 +30,10 @@ def create_app():
 
     # ── Load config ───────────────────────────────────────────────────────────
     app.config.from_object(get_config())
+    # Trust Render's proxy so Flask sees HTTPS correctly
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+    
 
     # ── Initialize extensions ─────────────────────────────────────────────────
     db.init_app(app)
