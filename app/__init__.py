@@ -32,7 +32,7 @@ def create_app():
     app.config.from_object(get_config())
     # Trust Render's proxy so Flask sees HTTPS correctly
     from werkzeug.middleware.proxy_fix import ProxyFix
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=2, x_proto=2, x_host=2, x_prefix=2)
     
 
     # ── Initialize extensions ─────────────────────────────────────────────────

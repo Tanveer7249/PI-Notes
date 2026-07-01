@@ -46,12 +46,13 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
-    SESSION_COOKIE_SECURE = False  # change to False temporarily
-    SESSION_COOKIE_SAMESITE = "Lax"
+    SECRET_KEY = "pitestsecretkey2024abcdef"
+    SESSION_COOKIE_SECURE = False
+    SESSION_COOKIE_SAMESITE = "None"  # change to None
     SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_NAME = "pitest_session"
     WTF_CSRF_TIME_LIMIT = None
     WTF_CSRF_SSL_STRICT = False
-
 
 # ── Config selector ───────────────────────────────────────────────────────────
 # Set FLASK_ENV=production in Render environment variables.
