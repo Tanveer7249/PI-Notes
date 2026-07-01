@@ -17,7 +17,11 @@ class Config:
     # ── Database ──────────────────────────────────────────────────────────────
     # Supabase provides a standard PostgreSQL connection string.
     # Format: postgresql://user:password@host:port/dbname
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///dev.db")
+    # Replace postgres:// with postgresql:// for SQLAlchemy compatibility
+    _db_url = os.environ.get("DATABASE_URL", "sqlite:///dev.db")
+    if _db_url and _db_url.startswith("postgres://"):
+        _db_url = _db_url.replace("postgres://", "postgresql://", 1)
+    SQLALCHEMY_DATABASE_URI = _db_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False  # Suppress overhead warning
 
     # ── Flask-WTF CSRF ────────────────────────────────────────────────────────
@@ -46,9 +50,10 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
-    SECRET_KEY = "pitestsecretkey2024abcdef"
-    SESSION_COOKIE_SECURE = False
-    SESSION_COOKIE_SAMESITE = "None"  # change to None
+    # Use environment secret key if set, otherwise use fallback
+    SECRET_KEY = os.environ.get("SECRET_KEY", "pitestsecretkey2024abcdef")
+    SESSION_COOKIE_SECURE = True  # Render enforces HTTPS, so cookie must be Secure
+    SESSION_COOKIE_SAMESITE = "Lax"  # Secure default that modern browsers accept
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_NAME = "pitest_session"
     WTF_CSRF_TIME_LIMIT = None
