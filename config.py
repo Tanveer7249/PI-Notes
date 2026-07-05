@@ -25,7 +25,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False  # Suppress overhead warning
 
     # ── Flask-WTF CSRF ────────────────────────────────────────────────────────
-    WTF_CSRF_ENABLED = True
+    WTF_CSRF_ENABLED = False
 
     # ── Flask-SocketIO ────────────────────────────────────────────────────────
     # gevent is used as the async mode — fully supports Python 3.13, unlike eventlet
