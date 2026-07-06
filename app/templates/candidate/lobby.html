@@ -1,144 +1,167 @@
 {% extends "base.html" %}
-{% block title %}Lobby — {{ test.title }}{% endblock %}
-{% block body_class %}bg-[#f5f5f7] dark:bg-black{% endblock %}
+
+{% block title %}Exam Lobby — {{ test.title }}{% endblock %}
+
+{% block body_class %}bg-gradient-to-br from-indigo-50 via-white to-violet-50{% endblock %}
 
 {% block content %}
-<div class="max-w-xl mx-auto">
+
+<div class="max-w-2xl mx-auto">
 
     <div class="text-center mb-8">
         <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl
-                    bg-gradient-to-br from-indigo-500 to-violet-600 mb-4 shadow-xl shadow-indigo-200/60 dark:shadow-indigo-900/40 text-2xl">
+                    bg-gradient-to-br from-indigo-600 to-violet-600 text-white mb-4 shadow-lg shadow-indigo-200 text-2xl">
             📝
         </div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{{ test.title }}</h1>
-        <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">Complete the checks below before starting</p>
+        <h1 class="text-2xl font-bold text-gray-900">{{ test.title }}</h1>
+        <p class="text-sm text-gray-500 mt-1">Please complete the setup checks below before starting.</p>
     </div>
 
-    <!-- Stats -->
-    <div class="glass border border-gray-200/80 dark:border-gray-700/60 rounded-2xl shadow-sm p-5 mb-4">
-        <div class="grid grid-cols-3 gap-4 text-center divide-x divide-gray-100 dark:divide-gray-800">
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6">
+        <div class="grid grid-cols-3 gap-4 text-center divide-x divide-gray-100">
             <div>
-                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Duration</p>
-                <p class="text-lg font-bold text-gray-900 dark:text-white">{{ test.duration_minutes }}<span class="text-xs font-normal text-gray-400 ml-0.5">min</span></p>
+                <p class="text-xs text-gray-500 uppercase tracking-wide">Duration</p>
+                <p class="text-lg font-bold text-gray-900 mt-1">{{ test.duration_minutes }} min</p>
             </div>
             <div>
-                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Questions</p>
-                <p class="text-lg font-bold text-gray-900 dark:text-white">{{ test.question_count() }}</p>
+                <p class="text-xs text-gray-500 uppercase tracking-wide">Questions</p>
+                <p class="text-lg font-bold text-gray-900 mt-1">{{ test.question_count() }}</p>
             </div>
             <div>
-                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">Marks</p>
-                <p class="text-lg font-bold text-gray-900 dark:text-white">{{ test.total_marks() }}</p>
+                <p class="text-xs text-gray-500 uppercase tracking-wide">Total Marks</p>
+                <p class="text-lg font-bold text-gray-900 mt-1">{{ test.total_marks() }}</p>
             </div>
         </div>
         {% if test.negative_marking > 0 %}
-        <p class="text-xs text-amber-600 dark:text-amber-400 text-center mt-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl py-2">
-            ⚠ Negative marking: {{ (test.negative_marking * 100)|round|int }}% per wrong answer
+        <p class="text-xs text-yellow-600 text-center mt-4 bg-yellow-50 rounded-lg py-2">
+            ⚠ Negative marking enabled: {{ (test.negative_marking * 100) | round | int }}% deducted per wrong answer.
         </p>
         {% endif %}
     </div>
 
-    <!-- Checklist -->
-    <div class="glass border border-gray-200/80 dark:border-gray-700/60 rounded-2xl shadow-sm p-5 mb-4">
-        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Pre-Exam Checklist</p>
-        <div class="space-y-2">
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6">
+        <h2 class="text-sm font-semibold text-gray-800 mb-4">Pre-Exam Checklist</h2>
+        <div class="space-y-3">
 
-            <div class="flex items-center justify-between p-3.5 rounded-xl bg-white/60 dark:bg-gray-900/40 border border-gray-100 dark:border-gray-800">
+            <div class="flex items-center justify-between p-4 rounded-xl border border-gray-200 hover:border-indigo-200 transition-colors">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-lg">📷</div>
+                    <span class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-xl">📷</span>
                     <div>
-                        <p class="text-sm font-medium text-gray-800 dark:text-gray-100">Webcam Access</p>
+                        <p class="text-sm font-medium text-gray-800">Webcam Access</p>
                         <p class="text-xs text-gray-400">Required for proctoring</p>
                     </div>
                 </div>
                 <button id="check-webcam-btn"
-                        class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-900/40
-                               text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-all">
-                    Test
+                        class="text-xs font-medium px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700
+                               hover:bg-indigo-100 transition-colors">
+                    Test Webcam
                 </button>
             </div>
-            <video id="webcam-test-preview" class="hidden w-28 h-20 rounded-xl border border-gray-200 dark:border-gray-700 object-cover ml-12" autoplay muted></video>
+            <video id="webcam-test-preview" class="hidden w-32 h-24 rounded-lg border border-gray-200 object-cover" autoplay muted></video>
 
-            <div class="flex items-center justify-between p-3.5 rounded-xl bg-white/60 dark:bg-gray-900/40 border border-gray-100 dark:border-gray-800">
+            <div class="flex items-center justify-between p-4 rounded-xl border border-gray-200 hover:border-indigo-200 transition-colors">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-lg">🖥️</div>
+                    <span class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-xl">🖥️</span>
                     <div>
-                        <p class="text-sm font-medium text-gray-800 dark:text-gray-100">Fullscreen Mode</p>
-                        <p class="text-xs text-gray-400">Auto-activates on start</p>
+                        <p class="text-sm font-medium text-gray-800">Fullscreen Mode</p>
+                        <p class="text-xs text-gray-400">Will activate automatically when exam starts</p>
                     </div>
                 </div>
-                <span id="fullscreen-status" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-400">Pending</span>
+                <span id="fullscreen-status" class="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-100 text-gray-500">
+                    Pending
+                </span>
             </div>
 
-            <div class="flex items-center justify-between p-3.5 rounded-xl bg-white/60 dark:bg-gray-900/40 border border-gray-100 dark:border-gray-800">
+            <div class="flex items-center justify-between p-4 rounded-xl border border-gray-200 hover:border-indigo-200 transition-colors">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-violet-50 dark:bg-violet-900/30 flex items-center justify-center text-lg">🔗</div>
+                    <span class="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center text-xl">🔗</span>
                     <div>
-                        <p class="text-sm font-medium text-gray-800 dark:text-gray-100">Screen Sharing</p>
-                        <p class="text-xs text-gray-400">Prompted on exam start</p>
+                        <p class="text-sm font-medium text-gray-800">Screen Sharing</p>
+                        <p class="text-xs text-gray-400">You'll be prompted to share your screen on start</p>
                     </div>
                 </div>
-                <span class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-400">Required</span>
+                <span class="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-100 text-gray-500">
+                    Required
+                </span>
             </div>
+
         </div>
     </div>
 
-    <!-- Rules -->
-    <div class="border border-amber-200/80 dark:border-amber-900/40 bg-amber-50/60 dark:bg-amber-900/10 rounded-2xl p-5 mb-5">
-        <p class="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-3">⚠ Important Rules</p>
-        <ul class="text-xs text-amber-700 dark:text-amber-500 space-y-1.5 list-disc list-inside">
-            <li>Do not exit fullscreen during the exam.</li>
-            <li>Do not switch tabs or minimize the window.</li>
-            <li>Copy, paste, and right-click are disabled.</li>
-            <li>Webcam and screen are monitored throughout.</li>
-            <li>Violations are logged and may disqualify you.</li>
-            <li>Exam auto-submits when the timer expires.</li>
+    <div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-6 mb-6">
+        <h2 class="text-sm font-semibold text-yellow-800 mb-2 flex items-center gap-2">
+            <span>⚠</span> Important Rules
+        </h2>
+        <ul class="text-xs text-yellow-700 space-y-1.5 list-disc list-inside">
+            <li>Do not exit fullscreen mode during the exam.</li>
+            <li>Do not switch tabs or minimize the browser window.</li>
+            <li>Copy, paste, and right-click are disabled during the exam.</li>
+            <li>Your webcam and screen will be monitored throughout.</li>
+            <li>Violations are logged and may result in disqualification.</li>
+            <li>The exam will auto-submit when the timer expires.</li>
         </ul>
     </div>
 
-    <!-- Start -->
     <form method="POST" action="{{ url_for('candidate.start_exam', test_id=test.id) }}">
-        <button type="submit" id="start-exam-btn"
-                class="w-full py-3.5 rounded-2xl bg-gradient-to-b from-indigo-500 to-indigo-600
-                       text-white font-semibold text-sm shadow-xl shadow-indigo-500/30
-                       hover:from-indigo-600 hover:to-indigo-700 active:scale-[0.99] transition-all">
+        <button type="submit"
+                id="start-exam-btn"
+                class="w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-semibold py-3.5 rounded-xl
+                       hover:from-indigo-700 hover:to-violet-700 active:scale-[0.99] transition-all text-sm
+                       shadow-md shadow-indigo-200">
             I Understand — Start Exam
         </button>
     </form>
 
 </div>
+
 {% endblock %}
 
 {% block scripts %}
 <script>
     document.getElementById("check-webcam-btn").addEventListener("click", async () => {
-        const btn = document.getElementById("check-webcam-btn");
+        const btn   = document.getElementById("check-webcam-btn");
         const video = document.getElementById("webcam-test-preview");
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
             video.srcObject = stream;
             video.classList.remove("hidden");
-            btn.textContent = "✓ OK";
-            btn.classList.remove("bg-indigo-50", "text-indigo-600");
-            btn.classList.add("bg-green-50", "text-green-600");
+            btn.textContent = "✓ Webcam OK";
+            btn.classList.remove("bg-indigo-50", "text-indigo-700");
+            btn.classList.add("bg-green-50", "text-green-700");
         } catch (err) {
-            btn.textContent = "✗ Denied";
-            btn.classList.remove("bg-indigo-50", "text-indigo-600");
-            btn.classList.add("bg-red-50", "text-red-600");
+            btn.textContent = "✗ Access Denied";
+            btn.classList.remove("bg-indigo-50", "text-indigo-700");
+            btn.classList.add("bg-red-50", "text-red-700");
         }
     });
 
     const examForm = document.querySelector("form[action*='/start']");
-    if (examForm) {
+    const startBtn = document.getElementById("start-exam-btn");
+    if (examForm && startBtn) {
         examForm.addEventListener("submit", function (e) {
             e.preventDefault();
             const el = document.documentElement;
-            const fsReq = el.requestFullscreen ? el.requestFullscreen()
-                : el.webkitRequestFullscreen ? el.webkitRequestFullscreen()
-                : el.mozRequestFullScreen ? el.mozRequestFullScreen()
+            const fsRequest = el.requestFullscreen
+                ? el.requestFullscreen()
+                : el.webkitRequestFullscreen
+                ? el.webkitRequestFullscreen()
+                : el.mozRequestFullScreen
+                ? el.mozRequestFullScreen()
                 : Promise.resolve();
-            Promise.resolve(fsReq).catch(() => {}).finally(() => examForm.submit());
+            Promise.resolve(fsRequest)
+                .catch(() => {})
+                .finally(() => examForm.submit());
         });
     }
 
-    document.addEventListener("fullscreenchange", () => {
-        const el = document.getElementById("fullscreen-stat
+    function updateFullscreenStatus() {
+        const statusEl = document.getElementById("fullscreen-status");
+        const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+        if (isFs) {
+            statusEl.textContent = "Active";
+            statusEl.className = "text-xs font-medium px-3 py-1.5 rounded-lg bg-green-50 text-green-700";
+        }
+    }
+    document.addEventListener("fullscreenchange", updateFullscreenStatus);
+</script>
+{% endblock %}

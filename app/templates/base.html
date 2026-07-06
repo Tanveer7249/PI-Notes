@@ -1,163 +1,148 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en" class="h-full bg-gray-50">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content="" />
-    <title>{% block title %}PI Test{% endblock %}</title>
+    <title>{% block title %}MCQ Exam Platform{% endblock %}</title>
 
-    <!-- No-flash theme -->
-    <script>
-        (function () {
-            var saved = localStorage.getItem("pitest-theme");
-            var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-            var isDark = saved ? saved === "dark" : prefersDark;
-            if (isDark) document.documentElement.classList.add("dark");
-        })();
-    </script>
-
-    <script>
-        window.tailwind = window.tailwind || {};
-        tailwind.config = { darkMode: "class" };
-    </script>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}" />
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
-        .glass { background: rgba(255,255,255,0.72); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-        .dark .glass { background: rgba(30,30,32,0.72); }
-        .glass-nav { background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-        .dark .glass-nav { background: rgba(22,22,24,0.85); }
-    </style>
+    <!-- Custom overrides (anti-cheat CSS, exam layout, etc.) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}" />
+
+    <!-- Socket.IO client (served by Flask-SocketIO) -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
     {% block head %}{% endblock %}
 </head>
 
-<body class="h-full flex flex-col bg-[#f5f5f7] dark:bg-[#000000] text-gray-900 dark:text-gray-100 transition-colors duration-300 {% block body_class %}{% endblock %}">
+<body class="h-full flex flex-col {% block body_class %}{% endblock %}">
 
+    <!-- ── NAVIGATION ──────────────────────────────────────────────────────── -->
     {% if current_user.is_authenticated %}
-    <nav class="glass-nav border-b border-gray-200/60 dark:border-gray-800/60 sticky top-0 z-50 no-print">
-        <div class="max-w-6xl mx-auto px-6">
-            <div class="flex justify-between h-14 items-center">
+    <nav class="bg-white border-b border-gray-200 shadow-sm no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
 
-                <a href="/" class="flex items-center gap-2">
-                    <div class="w-7 h-7 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-lg flex items-center justify-center">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                        </svg>
-                    </div>
-                    <span class="font-semibold text-gray-900 dark:text-white text-sm tracking-tight">PI Test</span>
+                <!-- Logo / Brand -->
+                <a href="/" class="flex items-center gap-2 text-indigo-600 font-bold text-lg">
+                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2
+                                 M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2
+                                 m-6 9l2 2 4-4" />
+                    </svg>
+                    ExamProctor
                 </a>
 
-                <div class="flex items-center gap-1">
+                <!-- Role-based nav links -->
+                <div class="flex items-center gap-6">
+
                     {% if current_user.is_admin() %}
-                    <a href="{{ url_for('admin.dashboard') }}" class="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all">Dashboard</a>
-                    <a href="{{ url_for('admin.test_list') }}" class="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all">Tests</a>
+                        <a href="{{ url_for('admin.dashboard') }}"
+                           class="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors
+                                  {% if request.endpoint and request.endpoint.startswith('admin') %}text-indigo-600{% endif %}">
+                            Dashboard
+                        </a>
+                        <a href="{{ url_for('admin.test_list') }}"
+                           class="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">
+                            Tests
+                        </a>
+
                     {% elif current_user.is_candidate() %}
-                    <a href="{{ url_for('candidate.dashboard') }}" class="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all">My Tests</a>
+                        <a href="{{ url_for('candidate.dashboard') }}"
+                           class="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">
+                            My Tests
+                        </a>
+
                     {% elif current_user.is_proctor() %}
-                    <a href="{{ url_for('proctor.dashboard') }}" class="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all">Monitor</a>
+                        <a href="{{ url_for('proctor.dashboard') }}"
+                           class="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">
+                            Live Monitor
+                        </a>
+
+                        <!-- Alert badge -->
+                        <span class="relative">
+                            <span id="alert-count-badge"
+                                  class="hidden absolute -top-1 -right-2 bg-red-500 text-white
+                                         text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                                0
+                            </span>
+                            🔔
+                        </span>
                     {% endif %}
                 </div>
 
-                <div class="flex items-center gap-3">
-                    <button id="theme-toggle-btn" type="button"
-                            class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
-                        <svg id="theme-icon-sun" class="hidden w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-                        </svg>
-                        <svg id="theme-icon-moon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-                        </svg>
-                    </button>
-
-                    <div class="flex items-center gap-2 pl-3 border-l border-gray-200 dark:border-gray-700">
-                        <div class="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 flex items-center justify-center text-white text-xs font-semibold">
-                            {{ current_user.name[0].upper() }}
-                        </div>
-                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:block">{{ current_user.name.split()[0] }}</span>
+                <!-- User info + logout -->
+                <div class="flex items-center gap-4">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-sm font-medium text-gray-800">{{ current_user.name }}</p>
+                        <p class="text-xs text-gray-400 capitalize">{{ current_user.role }}</p>
                     </div>
-
                     <a href="{{ url_for('auth.logout') }}"
-                       class="text-xs font-medium text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors px-2 py-1">
+                       class="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500
+                              hover:text-red-600 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6
+                                     a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
                         Logout
                     </a>
                 </div>
             </div>
         </div>
     </nav>
-    {% else %}
-    <div class="fixed top-4 right-4 z-50">
-        <button id="theme-toggle-btn" type="button"
-                class="w-9 h-9 rounded-xl flex items-center justify-center text-gray-500 dark:text-gray-400
-                       glass border border-gray-200/60 dark:border-gray-700/60 shadow-sm hover:scale-105 transition-all">
-            <svg id="theme-icon-sun" class="hidden w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-            </svg>
-            <svg id="theme-icon-moon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-            </svg>
-        </button>
-    </div>
     {% endif %}
 
+    <!-- ── FLASH MESSAGES ──────────────────────────────────────────────────── -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-        <div class="max-w-6xl mx-auto w-full px-6 pt-4 no-print">
+        <div class="max-w-7xl mx-auto w-full px-4 pt-4 no-print" id="flash-container">
             {% for category, message in messages %}
-            <div class="flash-message flex items-center justify-between gap-3 px-4 py-3 rounded-2xl mb-2 text-sm font-medium
-                {% if category == 'success' %} bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 border border-green-100 dark:border-green-800/40
-                {% elif category == 'danger' %} bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 border border-red-100 dark:border-red-800/40
-                {% elif category == 'warning' %} bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 border border-amber-100 dark:border-amber-800/40
-                {% else %} bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 border border-blue-100 dark:border-blue-800/40 {% endif %}">
+            <div class="flash-message flex items-start justify-between gap-3 px-4 py-3 rounded-lg mb-2 text-sm font-medium
+                {% if category == 'success' %} bg-green-50 text-green-800 border border-green-200
+                {% elif category == 'danger' %} bg-red-50 text-red-800 border border-red-200
+                {% elif category == 'warning' %} bg-yellow-50 text-yellow-800 border border-yellow-200
+                {% else %} bg-blue-50 text-blue-800 border border-blue-200 {% endif %}">
                 <span>{{ message }}</span>
-                <button onclick="this.parentElement.remove()" class="text-lg leading-none opacity-40 hover:opacity-80">&times;</button>
+                <button onclick="this.parentElement.remove()"
+                        class="text-lg leading-none opacity-60 hover:opacity-100">&times;</button>
             </div>
             {% endfor %}
         </div>
         {% endif %}
     {% endwith %}
 
-    <main class="flex-1 {% block main_class %}max-w-6xl mx-auto w-full px-6 py-10{% endblock %}">
+    <!-- ── MAIN CONTENT ────────────────────────────────────────────────────── -->
+    <main class="flex-1 {% block main_class %}max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8{% endblock %}">
         {% block content %}{% endblock %}
     </main>
 
+    <!-- ── TOAST NOTIFICATION CONTAINER ───────────────────────────────────── -->
     <div id="toast-container" aria-live="polite"></div>
+
+    <!-- ── SNAPSHOT LIGHTBOX (proctor monitor) ────────────────────────────── -->
     <div id="snapshot-overlay" class="hidden">
-        <img id="snapshot-full" src="" alt="Snapshot" />
+        <img id="snapshot-full" src="" alt="Violation Snapshot" />
     </div>
 
+    <!-- ── PAGE-SPECIFIC SCRIPTS ──────────────────────────────────────────── -->
     {% block scripts %}{% endblock %}
 
+    <!-- Auto-dismiss flash messages via admin.js if on admin pages -->
     <script>
+        // Auto-dismiss all flash messages after 6 seconds
         setTimeout(() => {
             document.querySelectorAll(".flash-message").forEach((el) => {
                 el.style.transition = "opacity 0.5s";
-                el.style.opacity = "0";
+                el.style.opacity    = "0";
                 setTimeout(() => el.remove(), 500);
             });
-        }, 5000);
-
-        (function () {
-            const btn = document.getElementById("theme-toggle-btn");
-            const sun = document.getElementById("theme-icon-sun");
-            const moon = document.getElementById("theme-icon-moon");
-            function sync() {
-                const dark = document.documentElement.classList.contains("dark");
-                if (sun) sun.classList.toggle("hidden", !dark);
-                if (moon) moon.classList.toggle("hidden", dark);
-            }
-            sync();
-            if (btn) btn.addEventListener("click", () => {
-                const dark = document.documentElement.classList.toggle("dark");
-                localStorage.setItem("pitest-theme", dark ? "dark" : "light");
-                sync();
-            });
-        })();
+        }, 6000);
     </script>
+
 </body>
 </html>

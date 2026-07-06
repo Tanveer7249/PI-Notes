@@ -1,102 +1,130 @@
 {% extends "base.html" %}
-{% block title %}Create Account — PI Test{% endblock %}
-{% block body_class %}bg-[#f5f5f7] dark:bg-black{% endblock %}
-{% block main_class %}flex items-center justify-center min-h-screen px-4 py-10{% endblock %}
+
+{% block title %}Register — MCQ Exam Platform{% endblock %}
+
+{% block main_class %}flex items-center justify-center min-h-[calc(100vh-4rem)] px-4{% endblock %}
 
 {% block content %}
-<div class="w-full max-w-sm">
+<div class="w-full max-w-md">
 
     <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl
-                    bg-gradient-to-br from-indigo-500 to-violet-600 mb-5 shadow-xl shadow-indigo-200 dark:shadow-indigo-900/40">
-            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-600 text-white mb-4">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                      d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0z
+                         M3 20a6 6 0 0112 0v1H3v-1z" />
             </svg>
         </div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Create your account</h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1.5">Join PI Test in seconds</p>
+        <h1 class="text-2xl font-bold text-gray-900">Create your account</h1>
+        <p class="text-sm text-gray-500 mt-1">Choose your role to get started</p>
     </div>
 
-    <div class="glass border border-gray-200/80 dark:border-gray-700/60 rounded-3xl shadow-xl shadow-black/5 dark:shadow-black/40 p-8">
-        <form method="POST" action="{{ url_for('auth.register') }}" class="space-y-4">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+        <form method="POST" action="{{ url_for('auth.register') }}" class="space-y-5">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
+            <!-- Full Name -->
             <div>
-                <label for="name" class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Full Name</label>
-                <input type="text" id="name" name="name" required autofocus placeholder="John Doe"
-                       class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700
-                              bg-white/80 dark:bg-gray-900/80 text-gray-900 dark:text-gray-100
-                              placeholder:text-gray-300 dark:placeholder:text-gray-600
-                              text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 transition-all" />
+                <label for="name" class="block text-sm font-medium text-gray-700 mb-1.5">
+                    Full Name
+                </label>
+                <input type="text"
+                       id="name"
+                       name="name"
+                       required
+                       autofocus
+                       placeholder="John Doe"
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                              focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                              transition-colors" />
             </div>
 
+            <!-- Email -->
             <div>
-                <label for="email" class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Email</label>
-                <input type="email" id="email" name="email" required placeholder="you@example.com"
-                       class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700
-                              bg-white/80 dark:bg-gray-900/80 text-gray-900 dark:text-gray-100
-                              placeholder:text-gray-300 dark:placeholder:text-gray-600
-                              text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 transition-all" />
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-1.5">
+                    Email Address
+                </label>
+                <input type="email"
+                       id="email"
+                       name="email"
+                       required
+                       placeholder="you@example.com"
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                              focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                              transition-colors" />
             </div>
 
+            <!-- Password -->
             <div>
-                <label for="password" class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Password</label>
-                <input type="password" id="password" name="password" required minlength="6" placeholder="At least 6 characters"
-                       class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700
-                              bg-white/80 dark:bg-gray-900/80 text-gray-900 dark:text-gray-100
-                              placeholder:text-gray-300 dark:placeholder:text-gray-600
-                              text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-400 transition-all" />
+                <label for="password" class="block text-sm font-medium text-gray-700 mb-1.5">
+                    Password
+                </label>
+                <input type="password"
+                       id="password"
+                       name="password"
+                       required
+                       minlength="6"
+                       placeholder="At least 6 characters"
+                       class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm
+                              focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                              transition-colors" />
             </div>
 
+            <!-- Role Selection -->
             <div>
-                <label class="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Role</label>
-                <div class="grid grid-cols-3 gap-2">
-                    <label class="cursor-pointer">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Register As
+                </label>
+                <div class="grid grid-cols-3 gap-3">
+
+                    <label class="role-option cursor-pointer">
                         <input type="radio" name="role" value="candidate" checked class="sr-only peer" />
-                        <div class="flex flex-col items-center gap-1 p-3 rounded-xl border-2 border-gray-200 dark:border-gray-700
-                                    peer-checked:border-indigo-500 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-900/30
-                                    hover:border-gray-300 dark:hover:border-gray-600 transition-all text-center">
-                            <span class="text-lg">🎓</span>
-                            <span class="text-xs font-medium text-gray-700 dark:text-gray-300">Candidate</span>
+                        <div class="flex flex-col items-center gap-1.5 px-3 py-3 rounded-lg border-2 border-gray-200
+                                    peer-checked:border-indigo-500 peer-checked:bg-indigo-50
+                                    hover:border-gray-300 transition-colors text-center">
+                            <span class="text-xl">🎓</span>
+                            <span class="text-xs font-medium text-gray-700">Candidate</span>
                         </div>
                     </label>
-                    <label class="cursor-pointer">
+
+                    <label class="role-option cursor-pointer">
                         <input type="radio" name="role" value="proctor" class="sr-only peer" />
-                        <div class="flex flex-col items-center gap-1 p-3 rounded-xl border-2 border-gray-200 dark:border-gray-700
-                                    peer-checked:border-indigo-500 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-900/30
-                                    hover:border-gray-300 dark:hover:border-gray-600 transition-all text-center">
-                            <span class="text-lg">👁️</span>
-                            <span class="text-xs font-medium text-gray-700 dark:text-gray-300">Proctor</span>
+                        <div class="flex flex-col items-center gap-1.5 px-3 py-3 rounded-lg border-2 border-gray-200
+                                    peer-checked:border-indigo-500 peer-checked:bg-indigo-50
+                                    hover:border-gray-300 transition-colors text-center">
+                            <span class="text-xl">👁️</span>
+                            <span class="text-xs font-medium text-gray-700">Proctor</span>
                         </div>
                     </label>
-                    <label class="cursor-pointer">
+
+                    <label class="role-option cursor-pointer">
                         <input type="radio" name="role" value="admin" class="sr-only peer" />
-                        <div class="flex flex-col items-center gap-1 p-3 rounded-xl border-2 border-gray-200 dark:border-gray-700
-                                    peer-checked:border-indigo-500 peer-checked:bg-indigo-50 dark:peer-checked:bg-indigo-900/30
-                                    hover:border-gray-300 dark:hover:border-gray-600 transition-all text-center">
-                            <span class="text-lg">⚙️</span>
-                            <span class="text-xs font-medium text-gray-700 dark:text-gray-300">Admin</span>
+                        <div class="flex flex-col items-center gap-1.5 px-3 py-3 rounded-lg border-2 border-gray-200
+                                    peer-checked:border-indigo-500 peer-checked:bg-indigo-50
+                                    hover:border-gray-300 transition-colors text-center">
+                            <span class="text-xl">⚙️</span>
+                            <span class="text-xs font-medium text-gray-700">Admin</span>
                         </div>
                     </label>
+
                 </div>
             </div>
 
+            <!-- Submit -->
             <button type="submit"
-                    class="w-full mt-2 bg-gradient-to-b from-indigo-500 to-indigo-600 text-white font-semibold
-                           py-3 rounded-xl text-sm shadow-lg shadow-indigo-500/30
-                           hover:from-indigo-600 hover:to-indigo-700 active:scale-[0.98] transition-all">
+                    class="w-full bg-indigo-600 text-white font-medium py-2.5 rounded-lg
+                           hover:bg-indigo-700 active:bg-indigo-800 transition-colors
+                           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                 Create Account
             </button>
         </form>
 
-        <div class="mt-6 pt-5 border-t border-gray-100 dark:border-gray-800 text-center">
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-                Already have an account?
-                <a href="{{ url_for('auth.login') }}" class="font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 transition-colors">
-                    Sign in
-                </a>
-            </p>
-        </div>
+        <p class="text-center text-sm text-gray-500 mt-6">
+            Already have an account?
+            <a href="{{ url_for('auth.login') }}" class="font-medium text-indigo-600 hover:text-indigo-700">
+                Sign in here
+            </a>
+        </p>
     </div>
 </div>
 {% endblock %}
